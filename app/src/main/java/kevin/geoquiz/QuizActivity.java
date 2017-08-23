@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 public class QuizActivity extends AppCompatActivity {
     private static final String TAG = "QuizActivity";
+    private static final String KEY_INDEX = "index";
 
     private Button mTrueButton;
     private Button mFalseButton;
@@ -34,6 +35,10 @@ public class QuizActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_quiz);
 
+        if(savedInstanceState != null){
+            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+        }
+
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
         updateQuestion();
 
@@ -57,6 +62,9 @@ public class QuizActivity extends AppCompatActivity {
         mNextButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 //execute when user clicks next button
+                mTrueButton.setEnabled(true);
+                mFalseButton.setEnabled(true);
+
                 mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
                 updateQuestion();
             }
@@ -66,6 +74,8 @@ public class QuizActivity extends AppCompatActivity {
         mPrevButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 //execute when user clicks prev button
+                mTrueButton.setEnabled(true);
+                mFalseButton.setEnabled(true);
                 if(mCurrentIndex == 0){
                     mCurrentIndex = mQuestionBank.length - 1;
                 }
@@ -94,6 +104,12 @@ public class QuizActivity extends AppCompatActivity {
         Log.d(TAG, "onPause() called");
     }
     @Override
+    public void onSaveInstanceState(Bundle savedInstanceState){
+        super.onSaveInstanceState(savedInstanceState);
+        Log.i(TAG, "onSaveInstanceState()");
+        savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+    }
+    @Override
     public void onStop(){
         super.onStop();
         Log.d(TAG, "onStop() called");
@@ -113,8 +129,10 @@ public class QuizActivity extends AppCompatActivity {
     private void checkAnswer(boolean userPressedTrue){
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
 
-        int messageResId;
+        mTrueButton.setEnabled(false);
+        mFalseButton.setEnabled(false);
 
+        int messageResId;
         if(userPressedTrue == answerIsTrue){
            messageResId = R.string.correct_toast;
         }
