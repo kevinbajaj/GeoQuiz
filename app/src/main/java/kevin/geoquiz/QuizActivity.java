@@ -1,5 +1,6 @@
 package kevin.geoquiz;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ public class QuizActivity extends AppCompatActivity {
     private Button mPrevButton;
     private Button mCheatButton;
     private TextView mQuestionTextView;
+    private boolean mIsCheater;
 
     private Question[] mQuestionBank = new Question[]{
             new Question(R.string.question_australia, true),
@@ -65,10 +67,10 @@ public class QuizActivity extends AppCompatActivity {
         mNextButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 //execute when user clicks next button
-                mTrueButton.setEnabled(true);
-                mFalseButton.setEnabled(true);
+
 
                 mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+                mIsCheater = false;
                 updateQuestion();
             }
         });
@@ -77,8 +79,7 @@ public class QuizActivity extends AppCompatActivity {
         mPrevButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 //execute when user clicks prev button
-                mTrueButton.setEnabled(true);
-                mFalseButton.setEnabled(true);
+
                 if(mCurrentIndex == 0){
                     mCurrentIndex = mQuestionBank.length - 1;
                 }
@@ -100,6 +101,20 @@ public class QuizActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+
+        if(resultCode != Activity.RESULT_OK){
+            return;
+        }
+        if(requestCode == REQUEST_CODE_CHEAT){
+            if(data == null){
+                return;
+            }
+            mIsCheater = CheatActivity.wasAnswerShown(data);
+        }
     }
 
     @Override
@@ -143,15 +158,19 @@ public class QuizActivity extends AppCompatActivity {
     private void checkAnswer(boolean userPressedTrue){
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
 
-        mTrueButton.setEnabled(false);
-        mFalseButton.setEnabled(false);
 
         int messageResId;
-        if(userPressedTrue == answerIsTrue){
-           messageResId = R.string.correct_toast;
+        Log.d(TAG, "mIsCheater value: " + Boolean.toString(mIsCheater));
+        if(mIsCheater){
+            messageResId = R.string.judgment_toast;
         }
         else{
-            messageResId = R.string.incorrect_toast;
+            if(userPressedTrue == answerIsTrue){
+                messageResId = R.string.correct_toast;
+            }
+            else{
+                messageResId = R.string.incorrect_toast;
+            }
         }
 
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT ).show();
